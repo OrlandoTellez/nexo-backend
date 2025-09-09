@@ -1,0 +1,32 @@
+# Archivos y carpetas generados por Rust
+/target
+**/*.rs.bk
+
+# Archivos de compilación e intermediarios
+*.o
+*.so
+*.rlib
+*.dll
+*.dylib
+*.exe
+*.pdb
+
+# Archivos de dependencias
+Cargo.lock
+!Cargo.lock    # Si es una librería, puedes ignorar Cargo.lock
+*.crate
+
+# Archivos de logs
+*.log
+
+# Configuración del editor
+.vscode/
+.idea/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Variables de entorno
+.env
+.env.*
