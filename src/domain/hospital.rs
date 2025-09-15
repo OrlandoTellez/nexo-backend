@@ -13,3 +13,16 @@ pub struct CreateHospital {
     pub name: String,
     pub address: String
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Patient {
+    pub id_patient: i32,
+    pub first_name: String,
+    pub second_name: String,
+    pub first_lastname: String,
+    pub second_lastname: String,
+    pub birthdate: String,
+    pub phone: String,
+    pub address: String,
+    pub email: String,
+}
