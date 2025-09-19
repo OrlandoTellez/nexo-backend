@@ -1,8 +1,8 @@
+use anyhow::Result;
 use async_trait::async_trait;
 use sqlx::PgPool;
-use anyhow::Result;
 
-use crate::domain::patient::{Patient, CreatePatient, UpdatePatient};
+use crate::domain::patient::{CreatePatient, Patient, UpdatePatient};
 
 #[async_trait]
 pub trait PatientRepository: Send + Sync + 'static {
@@ -19,7 +19,7 @@ pub struct PgPatientRepository {
 
 impl PgPatientRepository {
     pub fn new(pool: PgPool) -> Self {
-        Self { pool}
+        Self { pool }
     }
 }
 
@@ -27,7 +27,7 @@ impl PgPatientRepository {
 impl PatientRepository for PgPatientRepository {
     async fn get_all(&self) -> Result<Vec<Patient>> {
         let result: Vec<Patient> = sqlx::query_as::<_, Patient>(
-            "SELECT id_patient, first_name, second_name, first_lastname, second_lastname, birthdate, phone, address, email FROM patients"
+            "SELECT id_patient, first_name, second_name, first_lastname, second_lastname, birthdate, phone, address, email FROM patients WHERE deleted_at IS NULL"
         )
         .fetch_all(&self.pool)
         .await?;
@@ -36,7 +36,7 @@ impl PatientRepository for PgPatientRepository {
 
     async fn get_by_id(&self, id: i32) -> Result<Option<Patient>> {
         let result: Option<Patient> = sqlx::query_as::<_, Patient>(
-            "SELECT id_patient, first_name, second_name, first_lastname, second_lastname, birthdate, phone, address, email FROM patients WHERE id_patient = $1"
+            "SELECT id_patient, first_name, second_name, first_lastname, second_lastname, birthdate, phone, address, email FROM patients WHERE id_patient = $1 AND deleted_at IS NULL"
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -46,25 +46,42 @@ impl PatientRepository for PgPatientRepository {
 
     async fn create(&self, data: CreatePatient) -> Result<Patient> {
         let result: Patient = sqlx::query_as::<_, Patient>(
-            "INSERT INTO patients (first_name, second_name, first_lastname, second_lastname, birthdate, phone, address, email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
-        )
-        .bind(data.first_name)
-        .bind(data.second_name)
-        .bind(data.first_lastname)
-        .bind(data.second_lastname)
-        .bind(data.birthdate)
-        .bind(data.phone)
-        .bind(data.address)
-        .bind(data.email)
-        .fetch_one(&self.pool)
-        .await?;
+        "INSERT INTO patients 
+        (id_user, first_name, second_name, first_lastname, second_lastname, birthdate, phone, address, email) 
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) 
+        RETURNING *"
+    )
+    .bind(data.id_user)
+    .bind(data.first_name)
+    .bind(data.second_name)
+    .bind(data.first_lastname)
+    .bind(data.second_lastname)
+    .bind(data.birthdate)
+    .bind(data.phone)
+    .bind(data.address)
+    .bind(data.email)
+    .fetch_one(&self.pool)
+    .await?;
         Ok(result)
     }
 
     async fn update(&self, id: i32, data: UpdatePatient) -> Result<Option<Patient>> {
         let result: Option<Patient> = sqlx::query_as::<_, Patient>(
-            "UPDATE patients SET first_name = $1, second_name = $2, first_lastname = $3, second_lastname = $4, birthdate = $5, phone = $6, address = $7, email = $8 WHERE id_patient = $9"
+            "UPDATE patients SET 
+            id_user = $1,
+            first_name = $2,
+            second_name = $3,
+            first_lastname = $4,
+            second_lastname = $5,
+            birthdate = $6,
+            phone = $7,
+            address = $8,
+            email = $9,
+            updated_at = NOW()
+         WHERE id_patient = $10
+         RETURNING *",
         )
+        .bind(data.id_user)
         .bind(data.first_name)
         .bind(data.second_name)
         .bind(data.first_lastname)
@@ -81,7 +98,7 @@ impl PatientRepository for PgPatientRepository {
 
     async fn delete(&self, id: i32) -> Result<Option<Patient>> {
         let result: Option<Patient> = sqlx::query_as::<_, Patient>(
-            "DELETE FROM patients WHERE id_patient = $1"
+            "UPDATE patients SET deleted_at = NOW() WHERE id_patient = $1 RETURNING *",
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -89,5 +106,3 @@ impl PatientRepository for PgPatientRepository {
         Ok(result)
     }
 }
-
-

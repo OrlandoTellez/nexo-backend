@@ -21,12 +21,12 @@ pub fn routes_patient(pool: PgPool) -> Router {
     // 3. Construir el router con endpoints
     Router::new()
         .route(
-            "/pacientes",
+            "/patients",
             get(patient_controller::get_all)
                 .post(patient_controller::create),
         )
         .route(
-            "/patientes/{id}",
+            "/patients/{id}",
             get(patient_controller::get_by_id)
                 .put(patient_controller::update)
                 .delete(patient_controller::delete),
