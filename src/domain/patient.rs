@@ -5,7 +5,7 @@ use chrono::NaiveDateTime;
 
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct Patient {
-    pub id_patient: i32,
+    pub id_patient: i32, // id auto incrementado por la BD
     pub id_user: Option<i32>,            // Puede ser NULL en la tabla
     pub first_name: String,
     pub second_name: Option<String>,     // Puede ser NULL
@@ -22,7 +22,7 @@ pub struct Patient {
 
 #[derive(Debug, Deserialize)]
 pub struct CreatePatient {
-    pub id_user: Option<i32>, // es auto incrementado por la BD
+    pub id_user: Option<i32>, // es null por defecto, al crear un usuario se le asigna un id
     pub first_name: String,
     pub second_name: Option<String>,
     pub first_lastname: String,

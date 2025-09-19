@@ -1,6 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use sqlx::PgPool;
+use sqlx::Error;
 
 use crate::domain::patient::{CreatePatient, Patient, UpdatePatient};
 
@@ -44,8 +45,8 @@ impl PatientRepository for PgPatientRepository {
         Ok(result)
     }
 
-    async fn create(&self, data: CreatePatient) -> Result<Patient> {
-        let result: Patient = sqlx::query_as::<_, Patient>(
+    async fn create(&self, data: CreatePatient) -> Result<Patient, anyhow::Error> {
+        let query = sqlx::query_as::<_, Patient>(
         "INSERT INTO patients 
         (id_user, first_name, second_name, first_lastname, second_lastname, birthdate, phone, address, email) 
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) 
@@ -59,9 +60,25 @@ impl PatientRepository for PgPatientRepository {
     .bind(data.birthdate)
     .bind(data.phone)
     .bind(data.address)
-    .bind(data.email)
-    .fetch_one(&self.pool)
-    .await?;
+    .bind(data.email);
+
+        let result = match query.fetch_one(&self.pool).await {
+            Ok(patient) => patient,
+            Err(Error::Database(db_err)) => {
+                if db_err.code().as_deref() == Some("23505") {
+                    anyhow::bail!("El correo ya existe")
+                } else {
+                    anyhow::bail!("Error en la base de datos: {}", db_err.message())
+                }
+            }
+            Err(Error::RowNotFound) => {
+                anyhow::bail!("No se pudo crear el paciente")
+            }
+            Err(e) => {
+                anyhow::bail!("Error inesperado: {}", e)
+            }
+        };
+
         Ok(result)
     }
 
