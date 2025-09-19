@@ -20,8 +20,10 @@ pub struct CreateUser {
     pub role: String,
 }
 
+#[derive(Debug, Deserialize)]
 pub struct UpdateUser {
     pub username: Option<String>,
     pub password_hash: Option<String>,
     pub role: Option<String>,
 }
+

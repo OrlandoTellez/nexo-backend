@@ -17,7 +17,9 @@ async fn main() {
 
     let app = Router::new()
         .merge(routes::hospital::routes_hospital(pool.clone()))
-        .merge(routes::patient::routes_patient(pool.clone())); 
+        .merge(routes::patient::routes_patient(pool.clone()))
+        .merge(routes::user::routes_user(pool.clone()))
+        ;
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
