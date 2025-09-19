@@ -71,9 +71,6 @@ impl PatientRepository for PgPatientRepository {
                     anyhow::bail!("Error en la base de datos: {}", db_err.message())
                 }
             }
-            Err(Error::RowNotFound) => {
-                anyhow::bail!("No se pudo crear el paciente")
-            }
             Err(e) => {
                 anyhow::bail!("Error inesperado: {}", e)
             }

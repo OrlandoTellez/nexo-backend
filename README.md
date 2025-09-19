@@ -27,6 +27,7 @@ body:
 }
 
 endpoints para usuarios:
+
 obtener todos los usuarios
 GET /users
 obtener un usuario por id
@@ -45,4 +46,35 @@ body:
   "username": "orlandotellsez36",
   "password_hash": "$2a$10$5.9.1.0.3.2.5.4.6.7.8.9.1.2.3.4.5.6.7.8.9.1",
   "role": "patient"
+}
+
+endpoints para doctores:
+
+obtener todos los doctores
+GET /doctores
+obtener un doctor por id
+GET /doctores/{id}
+crear un nuevo doctor
+POST /doctores
+actualizar un doctor
+PUT /doctores/{id}
+eliminar un doctor
+DELETE /doctores/{id}
+
+ejemplo de use 
+POST /doctores
+
+// primero se necesita tener servicios, areas y especialidades creados
+body:
+{
+  "id_area": 1,
+  "id_service": 1,
+  "id_speciality": 1,
+  "id_user": null,
+  "first_name": "Samuel",
+  "second_name": "Gabriel",
+  "first_lastname": "Tellez",
+  "second_lastname": "Houston",
+  "phone": "75061202",
+  "email": "orlandotellsez36@gmail.com"
 }

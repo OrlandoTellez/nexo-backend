@@ -40,6 +40,15 @@ CREATE TABLE areas (
     deleted_at TIMESTAMP
 );
 
+--Tabla de Especialidades
+CREATE TABLE specialities (
+    id_speciality SERIAL PRIMARY KEY,
+    speciality_name VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
 -- Tabla de Servicios Médicos
 CREATE TABLE services (
     id_service SERIAL PRIMARY KEY,
@@ -70,6 +79,7 @@ CREATE TABLE patients (
 CREATE TABLE doctors (
     id_doctor SERIAL PRIMARY KEY,
     id_area INT NOT NULL REFERENCES areas(id_area),
+	id_speciality INT NULL REFERENCES specialities(id_speciality),
     id_service INT NOT NULL REFERENCES services(id_service),
     id_user INT NULL REFERENCES users(id_user),
     first_name VARCHAR(50) NOT NULL,
@@ -78,7 +88,6 @@ CREATE TABLE doctors (
     second_lastname VARCHAR(50),
     phone VARCHAR(20),
     email VARCHAR(100) UNIQUE,
-    specialty VARCHAR(100),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
