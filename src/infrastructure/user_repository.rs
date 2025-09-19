@@ -60,13 +60,10 @@ impl UserRepository for PgUserRepository {
             Ok(user) => user,
             Err(Error::Database(db_err)) => {
                 if db_err.code().as_deref() == Some("23505") {
-                    anyhow::bail!("El correo ya existe")
+                    anyhow::bail!("El usuario ya existe")
                 } else {
                     anyhow::bail!("Error en la base de datos: {}", db_err.message())
                 }
-            }
-            Err(Error::RowNotFound) => {
-                anyhow::bail!("No se pudo crear el paciente")
             }
             Err(e) => {
                 anyhow::bail!("Error inesperado: {}", e)
@@ -78,17 +75,16 @@ impl UserRepository for PgUserRepository {
 
     async fn update(&self, id: i32, data: UpdateUser) -> Result<Option<User>> {
         let result: Option<User> = sqlx::query_as::<_, User>(
-            "UPDATE users SET 
-            username = $1,
-            password_hash = $2,
-            role = $3,
-            updated_at = NOW()
-         WHERE id_user = $4
-         RETURNING *",
+            "UPDATE users SET
+ username = COALESCE($1, username),
+ password_hash = COALESCE($2, password_hash),
+ role = COALESCE($3, role),
+ updated_at = NOW()
+ WHERE id_user = $4 RETURNING *",
         )
-        .bind(data.username)
-        .bind(data.password_hash)
-        .bind(data.role)
+        .bind(data.username.as_deref())
+        .bind(data.password_hash.as_deref())
+        .bind(data.role.as_deref())
         .bind(id)
         .fetch_optional(&self.pool)
         .await?;

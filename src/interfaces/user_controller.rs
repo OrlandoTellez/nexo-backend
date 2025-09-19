@@ -1,5 +1,5 @@
 use axum::{extract::{State, Path}, response::IntoResponse, Json, http::StatusCode};
-use crate::domain::user::{User, CreateUser, UpdateUser};
+use crate::domain::user::{CreateUser, UpdateUser};
 use crate::application::user_service::UserService;
 use crate::infrastructure::user_repository::PgUserRepository;
 use std::sync::Arc;
@@ -9,7 +9,10 @@ pub type SharedUserService = Arc<UserService<PgUserRepository>>;
 pub async fn get_all(State(service): State<SharedUserService> ) -> impl IntoResponse {
     match service.get_all().await {
         Ok(users) => (StatusCode::OK, Json(users)).into_response(),
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Error al obtener usuarios").into_response()
+       Err(e) => {
+        eprintln!("Error al obtener usuarios: {:?}", e);
+        (StatusCode::INTERNAL_SERVER_ERROR, format!("Error: {}", e)).into_response()
+    }
     }
 }
 
