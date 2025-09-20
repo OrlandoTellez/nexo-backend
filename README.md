@@ -78,3 +78,24 @@ body:
   "phone": "75061202",
   "email": "orlandotellsez36@gmail.com"
 }
+
+
+endpoints para servicios:
+
+obtener todos los servicios
+GET /services
+obtener un servicio por id
+GET /services/{id}
+crear un nuevo servicio
+POST /services
+actualizar un servicio
+PATCH /services/{id}
+eliminar un servicio
+DELETE /services/{id}
+
+ejemplo de use 
+POST /services
+body:
+{
+  "service_name": "Servicio 1"
+}
