@@ -99,3 +99,23 @@ body:
 {
   "service_name": "Servicio 1"
 }
+
+endpoints para especialidades:
+
+obtener todos las especialidades
+GET /specialities
+obtener una especialidad por id
+GET /specialities/{id}
+crear una nueva especialidad
+POST /specialities
+actualizar una especialidad
+PATCH /specialities/{id}
+eliminar una especialidad
+DELETE /specialities/{id}
+
+ejemplo de use 
+POST /specialities
+body:
+{
+  "speciality_name": "Especialidad 1"
+}
