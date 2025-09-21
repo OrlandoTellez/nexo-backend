@@ -3,3 +3,4 @@ pub mod patient_controller;
 pub mod user_controller;
 pub mod doctor_controller;
 pub mod services_controller;
+pub mod speciality_controller;
