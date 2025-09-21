@@ -21,6 +21,7 @@ async fn main() {
         .merge(routes::user::routes_user(pool.clone()))
         .merge(routes::doctor::routes_doctor(pool.clone()))
         .merge(routes::services::routes_services(pool.clone()))
+        .merge(routes::speciality::routes_speciality(pool.clone()))
         ;
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

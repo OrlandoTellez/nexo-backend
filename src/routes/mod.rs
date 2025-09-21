@@ -3,3 +3,4 @@ pub mod patient;
 pub mod user;
 pub mod doctor;
 pub mod services;
+pub mod speciality;

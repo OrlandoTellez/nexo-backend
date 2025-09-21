@@ -1,7 +1,6 @@
-use crate::domain::speciality::{self, CreateSpeciality, Speciality, UpdateSpeciality};
+use crate::domain::speciality::{CreateSpeciality, UpdateSpeciality};
 use crate::application::speciality_service::SpecialityService;
 use crate::infrastructure::speciality_repository::PgSpecialityRepository;
-use anyhow::Error;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
