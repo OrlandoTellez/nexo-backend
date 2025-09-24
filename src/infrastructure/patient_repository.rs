@@ -40,7 +40,8 @@ impl PatientRepository for PgPatientRepository {
 
     async fn get_by_id(&self, id: i32) -> Result<Option<Patient>> {
         let result: Option<Patient> = sqlx::query_as::<_, Patient>(
-            "SELECT id_patient, first_name, second_name, first_lastname, second_lastname, birthdate, phone, address, email FROM patients WHERE id_patient = $1 AND deleted_at IS NULL"
+            "SELECT id_patient, id_user, first_name, second_name, first_lastname, second_lastname, 
+            address, birthdate, phone, email, created_at, updated_at, deleted_at FROM patients WHERE id_patient = $1 AND deleted_at IS NULL"
         )
         .bind(id)
         .fetch_optional(&self.pool)
