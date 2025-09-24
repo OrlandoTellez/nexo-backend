@@ -15,7 +15,7 @@ pub struct Patient {
     pub birthdate: NaiveDate,            // DATE
     pub phone: Option<String>,           // VARCHAR(20), puede ser NULL
     pub email: Option<String>,           // VARCHAR(100), puede ser NULL
-    pub created_at: Option<NaiveDateTime>,
+    pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
     pub deleted_at: Option<NaiveDateTime>,
 }

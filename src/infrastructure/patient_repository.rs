@@ -1,7 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use sqlx::PgPool;
 use sqlx::Error;
+use sqlx::PgPool;
 
 use crate::domain::patient::{CreatePatient, Patient, UpdatePatient};
 
@@ -28,7 +28,10 @@ impl PgPatientRepository {
 impl PatientRepository for PgPatientRepository {
     async fn get_all(&self) -> Result<Vec<Patient>> {
         let result: Vec<Patient> = sqlx::query_as::<_, Patient>(
-            "SELECT id_patient, first_name, second_name, first_lastname, second_lastname, birthdate, phone, address, email FROM patients WHERE deleted_at IS NULL"
+            " SELECT id_patient, id_user, first_name, second_name, first_lastname, second_lastname, 
+            address, birthdate, phone, email, created_at, updated_at, deleted_at
+            FROM patients
+            WHERE deleted_at IS NULL"
         )
         .fetch_all(&self.pool)
         .await?;

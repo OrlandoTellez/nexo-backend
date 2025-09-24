@@ -2,10 +2,12 @@ src
 ├── main.rs               # Punto de entrada
 ├── config.rs             # Configuración (db, variables de entorno)
 ├── domain                # Entidades del dominio (hospital, paciente, doctor, etc.)
-│   └── hospital.rs
+│   └── paciente.rs
 ├── application           # Casos de uso (lógica de negocio)
-│   └── hospital_service.rs
+│   └── pacient_service.rs
 ├── infrastructure        # Adaptadores (db, repositorios, etc.)
-│   └── hospital_repository.rs
+│   └── paciente_repository.rs
 ├── interfaces            # Interfaces/Entrypoints (controllers/handlers HTTP)
-│   └── hospital_controller.rs
+│   └── paciente_controller.rs
+├── routes                # Rutas de la aplicación
+│   └── paciente.rs
