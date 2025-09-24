@@ -73,6 +73,9 @@ src/
 
 ## 🗄️ Base de Datos
 
+## diagrama 
+![diagrama entidad relacion](public/diagrama_entidad_relacion.png)
+
 ### Esquema Principal
 - **hospitals** - Información de hospitales
 - **users** - Usuarios del sistema (pacientes, doctores, admin)
@@ -82,6 +85,10 @@ src/
 - **services** - Servicios médicos
 - **specialities** - Especialidades médicas
 - **medical_appointments** - Citas médicas
+- **medical_history** - Historial clínico
+- **medical_documents** - Documentos médicos
+- **notifications** - Notificaciones
+- **lab_results** - Resultados de laboratorio
 - **audit_logs** - Auditoría de cambios
 
 ### Script de Base de Datos

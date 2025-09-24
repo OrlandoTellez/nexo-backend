@@ -103,10 +103,61 @@ CREATE TABLE medical_appointments (
     appointment_datetime TIMESTAMP NOT NULL,
     building VARCHAR(10),
     room VARCHAR(10),
+    notes TEXT,
+    prescription TEXT,
     status VARCHAR(20) DEFAULT 'pending', -- pending, confirmed, completed, canceled
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
+);
+
+-- Historial clinico
+CREATE TABLE medical_history (
+    id_history SERIAL PRIMARY KEY,
+    id_patient INT NOT NULL REFERENCES patients(id_patient),
+    id_doctor INT REFERENCES doctors(id_doctor),
+    diagnosis TEXT NOT NULL,
+    treatment TEXT,
+    notes TEXT,
+    record_date TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP
+);
+
+-- Resultados de laboratorio
+CREATE TABLE lab_results (
+    id_result SERIAL PRIMARY KEY,
+    id_patient INT NOT NULL REFERENCES patients(id_patient),
+    id_doctor INT REFERENCES doctors(id_doctor),
+    lab_name VARCHAR(100) NOT NULL,
+    test_type VARCHAR(100),
+    result TEXT NOT NULL,
+    result_date TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP
+);
+
+-- Notificaciones
+CREATE TABLE notifications (
+    id_notification SERIAL PRIMARY KEY,
+    id_user INT NOT NULL REFERENCES users(id_user),
+    title VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50), -- 'cita', 'resultado', 'general'
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    read_at TIMESTAMP
+);
+
+-- Documentos médicos
+CREATE TABLE medical_documents (
+    id_document SERIAL PRIMARY KEY,
+    id_patient INT NOT NULL REFERENCES patients(id_patient),
+    id_doctor INT REFERENCES doctors(id_doctor),
+    document_type VARCHAR(100), -- 'imagen', 'PDF', 'radiografía'
+    file_path TEXT NOT NULL,    -- ruta en el servidor o URL
+    description TEXT,
+    uploaded_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Tabla de Auditoría para cambios críticos
