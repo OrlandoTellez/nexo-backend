@@ -8,6 +8,9 @@ anyhow = "1.0"
 dotenvy = "0.15.7"
 async-trait = "0.1"
 axum = "0.8"
+validator = { version = "0.16", features = ["derive"] }
+lazy_static = "1.4"
+regex = "1"
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "macros", "uuid", "chrono", "migrate"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
