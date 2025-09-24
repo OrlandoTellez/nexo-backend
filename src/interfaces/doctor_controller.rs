@@ -40,7 +40,6 @@ pub async fn create(
     State(service): State<SharedDoctorService>,
     Json(payload): Json<CreateDoctor>,
 ) -> impl IntoResponse {
-    // aquí payload ya es CreateDoctor
     if let Err(errors) = payload.validate() {
         return (
             StatusCode::BAD_REQUEST,
@@ -63,26 +62,28 @@ pub async fn create(
 pub async fn update(
     State(service): State<SharedDoctorService>,
     Path(id): Path<i32>,
-    Json(payload): Json<UpdateDoctor>,
+    Json(payload): Json<UpdateDoctor>, 
 ) -> impl IntoResponse {
-    if let Err(errors) = payload.validate() {
+    if let Err(errors) = payload.validate() {  
         return (
             StatusCode::BAD_REQUEST,
             Json(format!("Errores de validación: {:?}", errors)),
         )
-            .into_response();
+        .into_response();
     }
 
-    match service.update(id, payload).await {
+    match service.update(id, payload).await { 
         Ok(Some(doc)) => (StatusCode::OK, Json(doc)).into_response(),
         Ok(None) => (StatusCode::NOT_FOUND, "Doctor no encontrado").into_response(),
         Err(_) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             "Error al actualizar doctor",
         )
-            .into_response(),
+        .into_response(),
     }
 }
+
+
 pub async fn delete(
     Path(id): Path<i32>,
     State(service): State<SharedDoctorService>,

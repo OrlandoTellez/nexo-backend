@@ -28,7 +28,7 @@ pub fn routes_doctor(pool: PgPool) -> Router {
         .route(
             "/doctors/{id}",
             get(doctor_controller::get_by_id)
-                .put(doctor_controller::update)
+                .patch(doctor_controller::update)
                 .delete(doctor_controller::delete),
         )
         .with_state(service)    

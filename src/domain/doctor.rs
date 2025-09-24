@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use chrono::NaiveDateTime;
 use validator::Validate;
-use crate::helpers::validators::validate_phone;
+use crate::helpers::validators::{validate_phone};
 
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct Doctor {
@@ -63,7 +63,6 @@ pub struct UpdateDoctor {
 
     pub second_lastname: Option<String>,
 
-    #[validate(phone(message = "Número de teléfono inválido"))]
     pub phone: Option<String>,
 
     #[validate(email(message = "Email inválido"))]
