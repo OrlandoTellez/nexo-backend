@@ -4,6 +4,7 @@ mod domain;
 mod infrastructure;
 mod interfaces;
 mod routes;
+mod helpers;
 
 use sqlx::postgres::PgPoolOptions;
 use axum::Router;
