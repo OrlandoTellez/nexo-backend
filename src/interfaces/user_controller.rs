@@ -9,6 +9,7 @@ use axum::{
 };
 use bcrypt::{hash, DEFAULT_COST};
 use std::sync::Arc;
+use::validator::Validate;
 
 pub type SharedUserService = Arc<UserService<PgUserRepository>>;
 
@@ -33,10 +34,20 @@ pub async fn get_by_id(
     }
 }
 
+
 pub async fn create(
     State(service): State<SharedUserService>,
     Json(mut data): Json<CreateUser>,
 ) -> impl IntoResponse {
+    // Validación
+    if let Err(errors) = data.validate() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(format!("Errores de validación: {:?}", errors)),
+        )
+            .into_response();
+    }
+
     // Hashear la contraseña
     match hash(&data.password_hash, DEFAULT_COST) {
         Ok(hashed) => data.password_hash = hashed,
@@ -45,7 +56,7 @@ pub async fn create(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Error al hashear la contraseña",
             )
-                .into_response()
+                .into_response();
         }
     }
 
