@@ -4,7 +4,6 @@ use chrono::{NaiveDate, NaiveDateTime};
 use validator::{Validate};
 use crate::helpers::validators::validate_phone;
 
-/// Struct principal del paciente
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct Patient {
     pub id_patient: i32,
@@ -22,7 +21,6 @@ pub struct Patient {
     pub deleted_at: Option<NaiveDateTime>,
 }
 
-/// Para creación de pacientes
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreatePatient {
     pub id_user: Option<i32>,
