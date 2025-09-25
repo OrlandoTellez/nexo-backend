@@ -1,74 +1,89 @@
 # Paciente App Backend
 
-Backend para el sistema de gestión de pacientes y citas médicas desarrollado en Rust como parte del hackaton 2025 Nicaragua.
+Backend para el sistema de gestión de pacientes y citas médicas desarrollado en Rust como parte del hackaton "Portal Paciente - Paciente App".
 
 ## 📋 Descripción
 
 Sistema backend que automatiza los procesos de registro, seguimiento de pacientes y programación de citas médicas para hospitales públicos de Nicaragua. Desarrollado como solución para el reto avanzado del hackaton.
 
-## 🚀 Funcionalidades Principales
+## 🚀 Características Principales
 
-### Para Pacientes
-- **Registro y gestión de perfiles** de pacientes
-- **Programación y gestión de citas médicas** (solicitud, confirmación, recordatorios, consulta, cancelación, reprogramación)
-- **Acceso a historial clínico básico** y notificaciones de resultados
+### ✅ Funcionalidades Implementadas
 
-### Para Personal Médico
-- **Gestión de citas médicas** y agendas de médicos
-- **Registro y gestión de expedientes clínicos** electrónicos
-- **Gestión de flujo de pacientes** y administración de reportes
+- **Gestión completa de pacientes** (CRUD con validación de datos)
+- **Sistema de usuarios y autenticación** (roles: patient, doctor, admin)
+- **Gestión de doctores y especialidades médicas**
+- **Sistema de citas médicas** con múltiples estados
+- **Historial clínico electrónico**
+- **Resultados de laboratorio**
+- **Validación robusta de datos** en todos los endpoints
+- **Arquitectura hexagonal** (Domain-Driven Design)
+
+### 🏥 Entidades del Sistema
+
+- **Pacientes** - Registro y gestión de información de pacientes
+- **Doctores** - Especialistas médicos con áreas y servicios
+- **Usuarios** - Sistema de autenticación y roles
+- **Citas Médicas** - Programación y seguimiento de consultas
+- **Historial Médico** - Registro de diagnósticos y tratamientos
+- **Resultados de Laboratorio** - Exámenes y pruebas médicas
+- **Servicios y Especialidades** - Catálogos del sistema hospitalario
 
 ## 🛠 Tecnologías Utilizadas
 
-- **Rust** - Lenguaje de programación
+### Backend Principal
+- **Rust** - Lenguaje de programación (edición 2021)
 - **Axum** - Framework web asíncrono
-- **SQLx** - ORM y cliente de base de datos
-- **PostgreSQL** - Base de datos
+- **SQLx** - ORM y cliente de base de datos con PostgreSQL
 - **Tokio** - Runtime asíncrono
-- **Serde** - Serialización/Deserialización
+
+### Base de Datos
+- **PostgreSQL** - Base de datos principal
+- **Características avanzadas**: JSONB, foreign keys, transacciones
+
+### Seguridad y Validación
 - **BCrypt** - Hash de contraseñas
+- **Validator** - Validación de datos con reglas personalizadas
+- **Regex** - Validación de formatos específicos (teléfonos, emails)
+
+### Utilidades
+- **Serde** - Serialización/Deserialización
+- **Chrono** - Manejo de fechas y horas
+- **Anyhow** - Manejo de errores
+- **Async-trait** - Traits asíncronos
 
 ## 📁 Estructura del Proyecto
 
 ```
 src/
-├── main.rs               # Punto de entrada de la aplicación
-├── config.rs             # Configuración (db, variables de entorno)
-├── domain/               # Entidades del dominio
-│   ├── hospital.rs
-│   ├── patient.rs
-│   ├── user.rs
-│   ├── doctor.rs
-│   ├── services.rs
-│   └── speciality.rs
-├── application/          # Lógica de negocio (servicios)
-│   ├── hospital_service.rs
+├── main.rs              # Punto de entrada de la aplicación
+├── config.rs            # Configuración (variables de entorno)
+├── domain/              # Entidades del dominio (DDD)
+│   ├── patient.rs       # Entidad Paciente
+│   ├── doctor.rs        # Entidad Doctor  
+│   ├── user.rs          # Entidad Usuario
+│   ├── appointment.rs   # Entidad Cita Médica
+│   ├── medical_history.rs # Historial médico
+│   └── lab_result.rs    # Resultados de laboratorio
+├── application/         # Casos de uso y lógica de negocio
 │   ├── patient_service.rs
-│   ├── user_service.rs
 │   ├── doctor_service.rs
-│   ├── services_service.rs
-│   └── speciality_service.rs
-├── infrastructure/       # Acceso a datos (repositorios)
-│   ├── hospital_repository.rs
+│   ├── user_service.rs
+│   └── ... (servicios para cada entidad)
+├── infrastructure/      # Adaptadores y acceso a datos
 │   ├── patient_repository.rs
-│   ├── user_repository.rs
 │   ├── doctor_repository.rs
-│   ├── services_repository.rs
-│   └── speciality_repository.rs
-├── interfaces/           # Controladores HTTP
-│   ├── hospital_controller.rs
+│   └── ... (repositorios para cada entidad)
+├── interfaces/          # Controladores HTTP (entrypoints)
 │   ├── patient_controller.rs
-│   ├── user_controller.rs
 │   ├── doctor_controller.rs
-│   ├── services_controller.rs
-│   └── speciality_controller.rs
-└── routes/               # Definición de rutas
-    ├── hospital.rs
-    ├── patient.rs
-    ├── user.rs
-    ├── doctor.rs
-    ├── services.rs
-    └── speciality.rs
+│   └── ... (controladores para cada entidad)
+├── routes/              # Definición de rutas de la API
+│   ├── patient.rs
+│   ├── doctor.rs
+│   └── ... (rutas para cada entidad)
+└── helpers/             # Utilidades y helpers
+    └── validators.rs    # Validadores personalizados
 ```
 
 ## 🗄️ Base de Datos
@@ -77,29 +92,26 @@ src/
 ![diagrama entidad relacion](public/diagrama_entidad_relacion.png)
 
 ### Esquema Principal
-- **hospitals** - Información de hospitales
-- **users** - Usuarios del sistema (pacientes, doctores, admin)
+La base de datos incluye tablas para:
+- **hospitales** - Información de centros médicos
+- **users** - Sistema de usuarios y autenticación
 - **patients** - Datos de pacientes
-- **doctors** - Datos de doctores
-- **areas** - Áreas médicas
-- **services** - Servicios médicos
-- **specialities** - Especialidades médicas
+- **doctors** - Información de doctores
+- **areas, services, specialities** - Catálogos del sistema
 - **medical_appointments** - Citas médicas
 - **medical_history** - Historial clínico
-- **medical_documents** - Documentos médicos
-- **notifications** - Notificaciones
 - **lab_results** - Resultados de laboratorio
 - **audit_logs** - Auditoría de cambios
 
 ### Script de Base de Datos
-Ver archivo `query.sql` para el esquema completo.
+Ver archivo `query.sql` para el esquema completo con relaciones y constraints.
 
 ## 🔧 Instalación y Configuración
 
 ### Prerrequisitos
-- Rust 1.70+
-- PostgreSQL 12+
-- Cargo (gestor de paquetes de Rust)
+- **Rust 1.70+** y Cargo
+- **PostgreSQL 12+**
+- **Git** para clonar el repositorio
 
 ### Pasos de Instalación
 
@@ -109,17 +121,16 @@ git clone https://github.com/OrlandoTellez/paciente-app-backend.git
 cd paciente-app-backend
 ```
 
-2. **Configurar base de datos**
+2. **Configurar variables de entorno**
 ```bash
-# Crear la base de datos ejecutando el script query.sql
-psql -U postgres -f query.sql
+cp .env.example .env
+# Editar .env con tus configuraciones
 ```
 
-3. **Configurar variables de entorno**
-archivo .env
+3. **Configurar base de datos**
 ```bash
-# Editar la cadena de conexión en src/main.rs
-# postgresql://usuario:contraseña@localhost:5432/db_paciente_app
+# Ejecutar el script SQL para crear la base de datos
+psql -U postgres -f query.sql
 ```
 
 4. **Instalar dependencias y ejecutar**
@@ -128,152 +139,171 @@ cargo build
 cargo run
 ```
 
-El servidor estará disponible en `http://localhost:3000`
+### Variables de Entorno
+```env
+DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/db_paciente_app
+APP_PORT=3000
+```
 
-## 📡 Endpoints de la API
+## 📡 API Endpoints
 
-### 👥 Pacientes
+### 🔐 Autenticación (Pendiente de implementación)
+*Actualmente los endpoints son públicos para desarrollo*
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/patients` | Obtener todos los pacientes |
-| GET | `/patients/{id}` | Obtener paciente por ID |
-| POST | `/patients` | Crear nuevo paciente |
-| PATCH | `/patients/{id}` | Actualizar paciente |
-| DELETE | `/patients/{id}` | Eliminar paciente (soft delete) |
+### 👥 Gestión de Pacientes
+- `GET /patients` - Obtener todos los pacientes
+- `GET /patients/{id}` - Obtener paciente por ID
+- `POST /patients` - Crear nuevo paciente
+- `PUT /patients/{id}` - Actualizar paciente
+- `DELETE /patients/{id}` - Eliminar paciente (soft delete)
 
-**Ejemplo POST /patients:**
-```json
-{
-  "id_user": null,
-  "first_name": "Samuel",
-  "second_name": "Gabriel",
-  "first_lastname": "Tellez",
-  "second_lastname": "Houston",
-  "address": "Rpto. satelite asososca casa no 135",
-  "birthdate": "2005-01-06",
-  "phone": "75061202",
-  "email": "orlandotellsez36@gmail.com"
+### 🩺 Gestión de Doctores
+- `GET /doctors` - Listar doctores
+- `GET /doctors/{id}` - Obtener doctor por ID
+- `POST /doctors` - Crear nuevo doctor
+- `PUT /doctors/{id}` - Actualizar doctor
+- `DELETE /doctors/{id}` - Eliminar doctor
+
+### 📅 Citas Médicas
+- `GET /appointments` - Listar citas
+- `GET /appointments/{id}` - Obtener cita por ID
+- `POST /appointments` - Crear nueva cita
+- `PATCH /appointments/{id}` - Actualizar cita
+- `DELETE /appointments/{id}` - Eliminar cita
+
+### 🏥 Otros Endpoints
+- **Usuarios**: `/users` - Gestión de usuarios del sistema
+- **Servicios**: `/services` - Catálogo de servicios médicos
+- **Especialidades**: `/specialities` - Especialidades médicas
+- **Historial Médico**: `/medical_history` - Registros clínicos
+- **Resultados de Lab**: `/lab_results` - Exámenes de laboratorio
+
+## ✅ Validación de Datos
+
+El sistema implementa validación robusta en todos los endpoints:
+
+### Validaciones Automáticas
+- **Longitud mínima/máxima** en campos de texto
+- **Formato de email** válido
+- **Números de teléfono** en formato internacional
+- **Roles válidos** (patient, doctor, admin)
+- **Unicidad** de emails y usernames
+
+### Ejemplo de Validación
+```rust
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreatePatient {
+    #[validate(length(min = 2, message = "El nombre debe tener al menos 2 caracteres"))]
+    pub first_name: String,
+    
+    #[validate(email(message = "Email inválido"))]
+    pub email: Option<String>,
+    
+    #[validate(custom = "validate_phone")]
+    pub phone: Option<String>,
 }
 ```
 
-### 👤 Usuarios
+## 🔒 Seguridad
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/users` | Obtener todos los usuarios |
-| GET | `/users/{id}` | Obtener usuario por ID |
-| POST | `/users` | Crear nuevo usuario |
-| PATCH | `/users/{id}` | Actualizar usuario |
-| DELETE | `/users/{id}` | Eliminar usuario (soft delete) |
+### Características Implementadas
+- **Hash de contraseñas** con BCrypt
+- **Soft delete** para mantener integridad de datos
+- **Validación de entrada** para prevenir inyecciones
+- **Manejo seguro de errores** sin exposición de información sensible
 
-**Ejemplo POST /users:**
-```json
-{
-  "username": "orlandotellsez36",
-  "password_hash": "$2a$10$5.9.1.0.3.2.5.4.6.7.8.9.1.2.3.4.5.6.7.8.9.1",
-  "role": "patient"
-}
+### Próximas Mejoras de Seguridad
+- [ ] Autenticación JWT
+- [ ] Autorización por roles
+- [ ] Rate limiting
+- [ ] CORS configuration
+
+## 🚀 Ejecución y Desarrollo
+
+### Modo Desarrollo
+```bash
+cargo run
+# Servidor disponible en http://localhost:3000
 ```
 
-### 🩺 Doctores
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/doctors` | Obtener todos los doctores |
-| GET | `/doctors/{id}` | Obtener doctor por ID |
-| POST | `/doctors` | Crear nuevo doctor |
-| PUT | `/doctors/{id}` | Actualizar doctor |
-| DELETE | `/doctors/{id}` | Eliminar doctor (soft delete) |
-
-**Ejemplo POST /doctors:**
-```json
-{
-  "id_area": 1,
-  "id_service": 1,
-  "id_speciality": 1,
-  "id_user": null,
-  "first_name": "Samuel",
-  "second_name": "Gabriel",
-  "first_lastname": "Tellez",
-  "second_lastname": "Houston",
-  "phone": "75061202",
-  "email": "orlandotellsez36@gmail.com"
-}
+### Build de Producción
+```bash
+cargo build --release
 ```
 
-### 🏥 Servicios Médicos
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/services` | Obtener todos los servicios |
-| GET | `/services/{id}` | Obtener servicio por ID |
-| POST | `/services` | Crear nuevo servicio |
-| PATCH | `/services/{id}` | Actualizar servicio |
-| DELETE | `/services/{id}` | Eliminar servicio (soft delete) |
-
-### 📚 Especialidades Médicas
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/specialities` | Obtener todas las especialidades |
-| GET | `/specialities/{id}` | Obtener especialidad por ID |
-| POST | `/specialities` | Crear nueva especialidad |
-| PATCH | `/specialities/{id}` | Actualizar especialidad |
-| DELETE | `/specialities/{id}` | Eliminar especialidad (soft delete) |
-
-## 🔐 Seguridad
-
-- **Hash de contraseñas**: Uso de BCrypt para el almacenamiento seguro de contraseñas
-- **Soft delete**: Eliminación lógica para mantener integridad de datos
-- **Validación de datos**: Validación a nivel de base de datos y aplicación
-- **Auditoría**: Logs de auditoría para cambios críticos
-
-## 🚦 Flujo de Citas Médicas
-
-1. **Registro** → Paciente se registra en el sistema
-2. **Solicitud** → Paciente solicita cita médica
-3. **Asignación** → Sistema asigna doctor y horario
-4. **Confirmación** → Paciente y doctor confirman cita
-5. **Recordatorio** → Sistema envía recordatorio
-6. **Ejecución** → Cita se realiza (pendiente de implementación)
-7. **Seguimiento** → Registro de resultados y seguimiento
-
-## 🧪 Pruebas
-
-Para ejecutar las pruebas del sistema:
-
+### Pruebas
 ```bash
 cargo test
 ```
 
-## 📈 Próximas Funcionalidades
+## 📊 Estado del Proyecto
 
-- [ ] Sistema completo de citas médicas
-- [ ] Historial clínico electrónico
-- [ ] Sistema de notificaciones y recordatorios
-- [ ] Fila virtual/turnos en tiempo real
-- [ ] Reportes y dashboard administrativo
-- [ ] Integración con geolocalización para unidades de salud
+### ✅ Completado
+- [x] Arquitectura base del proyecto
+- [x] CRUD completo para todas las entidades
+- [x] Validación de datos robusta
+- [x] Configuración con variables de entorno
+- [x] Base de datos con relaciones complejas
+- [x] Manejo de errores consistente
 
-## 👥 Roles del Sistema
+### 🔄 En Progreso
+- [ ] Integración con frontend Tauri
+- [ ] Sistema de autenticación JWT
+- [ ] Endpoints de reportes y estadísticas
 
-- **Paciente**: Gestión de perfil y citas
-- **Doctor**: Gestión de agenda y expedientes
-- **Admin**: Administración completa del sistema
+### 📋 Próximas Funcionalidades
+- [ ] Sistema de notificaciones
+- [ ] Integración con file upload para documentos
+- [ ] API para flujo de pacientes en tiempo real
+- [ ] Sistema de turnos virtuales
+- [ ] Dashboard administrativo
 
-## 🤝 Contribución
+## 🐛 Solución de Problemas
 
-Este proyecto fue desarrollado como parte de un hackaton. Para contribuir:
+### Problemas Comunes
 
-1. Fork del proyecto
-2. Crear rama de feature (`git checkout -b feature/AmazingFeature`)
-3. Commit de cambios (`git commit -m 'Add AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
+**Error de conexión a la base de datos:**
+```bash
+# Verificar que PostgreSQL esté ejecutándose
+sudo systemctl status postgresql
 
-## 📄 Licencia
+# Verificar la cadena de conexión en .env
+```
 
-Este proyecto es desarrollado para el hackaton 2025 de Nicaragua.
+**Error de migraciones:**
+```bash
+# Ejecutar el script SQL manualmente
+psql -U postgres -d db_paciente_app -f query.sql
+```
+
+**Problemas de dependencias:**
+```bash
+# Limpiar y reinstalar
+cargo clean
+cargo build
+```
+
+### Convenciones de Código
+- Sigue el estilo de Rust con `rustfmt`
+- Usa commits convencionales (feat, fix, docs, etc.)
+- Mantén la coherencia con la arquitectura existente
+
+## 📚 Documentación Adicional
+
+- [API Documentation](./documentation/API_CRUD_DOC.md) - Documentación completa de endpoints
+- [Database Schema](./documentation/DATABASE_DOC.md) - Esquema detallado de la base de datos
+- [Validation System](./documentation/VALIDATION_DATA.md) - Sistema de validación de datos
+- [Git Strategy](./documentation/GIT_STRATEGY.md) - Estrategia de control de versiones
+
+## Documentación Rust y Axum
+
+Para soporte técnico o preguntas sobre el proyecto:
+
+- **Documentación de Rust**: [rust-lang.org](https://www.rust-lang.org)
+- **Documentación de Axum**: [docs.rs/axum](https://docs.rs/axum)
+- **Issues del proyecto**: Crear ticket en el repositorio
 
 ---
+
+**Desarrollado con Rust 🦀 para un sistema de salud más eficiente**  
+*Tecnología que mejora vidas, código que transforma sistemas*
