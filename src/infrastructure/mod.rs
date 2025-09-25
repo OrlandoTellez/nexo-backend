@@ -4,3 +4,4 @@ pub mod user_repository;
 pub mod doctor_repository;
 pub mod services_repository;
 pub mod speciality_repository;
+pub mod appointment_repository;
