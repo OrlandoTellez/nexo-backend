@@ -5,3 +5,4 @@ pub mod doctor_service;
 pub mod services_service;
 pub mod speciality_service;
 pub mod appointment_service;
+pub mod medical_history_service;

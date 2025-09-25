@@ -5,3 +5,4 @@ pub mod doctor;
 pub mod services;
 pub mod speciality;
 pub mod appointment;
+pub mod medical_history;

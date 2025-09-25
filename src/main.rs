@@ -30,7 +30,8 @@ async fn main() {
         .merge(routes::doctor::routes_doctor(pool.clone()))
         .merge(routes::services::routes_services(pool.clone()))
         .merge(routes::speciality::routes_speciality(pool.clone()))
-        .merge(routes::appointment::routes_appointment(pool.clone()));
+        .merge(routes::appointment::routes_appointment(pool.clone()))
+        .merge(routes::medical_history::routes_medical_history(pool.clone()));
 
     let addr = format!("0.0.0.0:{}", app_port);
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
