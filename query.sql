@@ -160,6 +160,61 @@ CREATE TABLE medical_documents (
     uploaded_at TIMESTAMP DEFAULT NOW()
 );
 
+
+-- Tabla de turnos virtuales
+CREATE TABLE virtual_turns (
+  id_turn SERIAL PRIMARY KEY,
+  id_patient INT NULL REFERENCES patients(id_patient) ON DELETE SET NULL,
+  id_service INT NOT NULL REFERENCES services(id_service) ON DELETE CASCADE,
+  id_area INT NULL REFERENCES areas(id_area) ON DELETE SET NULL,
+  id_desk INT NULL REFERENCES users(id_user) ON DELETE SET NULL, -- operador/recepción que llamó
+  turn_number INT NOT NULL,
+  priority INT DEFAULT 0, -- 0 normal, mayor prioridad = antes
+  status VARCHAR(20) NOT NULL DEFAULT 'waiting', 
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  called_at TIMESTAMP NULL,
+  started_at TIMESTAMP NULL,
+  completed_at TIMESTAMP NULL,
+  expires_at TIMESTAMP NULL,
+  metadata JSONB DEFAULT '{}'::jsonb,
+
+  -- Columna generada: fecha del turno
+  turn_date DATE GENERATED ALWAYS AS (created_at::date) STORED,
+
+  -- Restricción de unicidad: un número por servicio y fecha
+  CONSTRAINT unique_turn_number_per_service_per_day UNIQUE (id_service, turn_number, turn_date)
+);
+
+-- Índices
+CREATE INDEX idx_turns_service_status ON virtual_turns (id_service, status, created_at);
+CREATE INDEX idx_turns_patient ON virtual_turns (id_patient);
+CREATE INDEX idx_turns_service_turn ON virtual_turns (id_service, turn_number);
+
+-- Tokens de dispositivos (notificaciones push)
+CREATE TABLE device_tokens (
+  id_token SERIAL PRIMARY KEY,
+  id_user INT NOT NULL REFERENCES users(id_user) ON DELETE CASCADE,
+  token TEXT NOT NULL,
+  platform VARCHAR(10) NOT NULL CHECK (platform IN ('fcm', 'apns')), -- firebase o apple
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  last_used TIMESTAMP NULL
+);
+
+CREATE UNIQUE INDEX idx_user_token_platform ON device_tokens (id_user, token, platform);
+
+-- Audit log de cambios de estado de turnos
+CREATE TABLE turn_audit_logs (
+  id_log SERIAL PRIMARY KEY,
+  id_turn INT NOT NULL REFERENCES virtual_turns(id_turn) ON DELETE CASCADE,
+  id_user INT NULL REFERENCES users(id_user),
+  old_status VARCHAR(20),
+  new_status VARCHAR(20),
+  changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  note TEXT
+);
+
+CREATE INDEX idx_turn_audit_turn ON turn_audit_logs (id_turn, changed_at);
+
 -- Tabla de Auditoría para cambios críticos
 CREATE TABLE audit_logs (
     id_audit SERIAL PRIMARY KEY,
