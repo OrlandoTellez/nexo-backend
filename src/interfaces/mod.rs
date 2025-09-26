@@ -7,3 +7,4 @@ pub mod speciality_controller;
 pub mod appointment_controller;
 pub mod medical_history_controller;
 pub mod lab_result_controller;
+pub mod auth_controller;

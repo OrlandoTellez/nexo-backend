@@ -7,3 +7,4 @@ pub mod speciality;
 pub mod appointment;
 pub mod medical_history;
 pub mod lab_result;
+pub mod auth;

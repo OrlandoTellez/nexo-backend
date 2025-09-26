@@ -7,3 +7,4 @@ pub mod speciality_service;
 pub mod appointment_service;
 pub mod medical_history_service;
 pub mod lab_result_service;
+pub mod auth_service;

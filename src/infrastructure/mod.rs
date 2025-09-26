@@ -7,3 +7,4 @@ pub mod speciality_repository;
 pub mod appointment_repository;
 pub mod medical_history_repository;
 pub mod lab_result;
+pub mod auth_repository;
