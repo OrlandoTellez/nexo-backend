@@ -3,7 +3,7 @@ use axum::{
     response::{IntoResponse, Response},
     http::{StatusCode, header},
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use crate::application::auth_service::AuthService;
 use sqlx::PgPool;
 
@@ -12,6 +12,14 @@ pub struct LoginRequest {
     pub username: String,
     pub password: String,
 }
+
+#[derive(Serialize)]
+struct LoginResponse {
+    message: String,
+    success: bool,
+    token: Option<String>,
+}
+
 
 pub async fn login_handler(
     State(pool): State<PgPool>,
@@ -29,12 +37,30 @@ pub async fn login_handler(
             (
                 StatusCode::OK,
                 [(header::SET_COOKIE, cookie)],
-                "Login exitoso",
+                Json(
+                    LoginResponse {
+                        message: "Login exitoso".to_string(),
+                        success: true,
+                        token: Some(token),
+                    }
+                )
             )
                 .into_response()
         }
-        Ok(None) => (StatusCode::UNAUTHORIZED, "Credenciales inválidas").into_response(),
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Error interno").into_response(),
+        Ok(None) => (StatusCode::UNAUTHORIZED, Json(
+            LoginResponse {
+                message: "Credenciales incorrectas".to_string(),
+                success: false,
+                token: None,
+            }
+        )).into_response(),
+        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, Json(
+            LoginResponse {
+                message: "Error interno".to_string(),
+                success: false,
+                token: None,
+            }
+        )).into_response(),
     }
 }
 
