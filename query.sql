@@ -24,12 +24,13 @@ CREATE TABLE hospitals (
 CREATE TABLE users (
     id_user SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL, -- guarda hash, no texto plano
-    role VARCHAR(20) NOT NULL,   -- 'patient', 'doctor', 'admin'
+    password_hash TEXT NOT NULL,  -- guarda hash, no texto plano
+    role VARCHAR(20) NOT NULL CHECK (role IN ('patient', 'doctor', 'admisionist', 'admin')),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
 );
+
 
 -- Tabla de Áreas Médicas
 CREATE TABLE areas (
@@ -92,6 +93,23 @@ CREATE TABLE doctors (
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
 );
+
+CREATE TABLE admisionists (
+    id_admisionist SERIAL PRIMARY KEY,
+    id_user INT NOT NULL REFERENCES users(id_user) ON DELETE CASCADE,
+    id_hospital INT REFERENCES hospitals(id_hospital),
+    first_name VARCHAR(50) NOT NULL,
+    second_name VARCHAR(50),
+    first_lastname VARCHAR(50) NOT NULL,
+    second_lastname VARCHAR(50),
+    phone VARCHAR(20),
+    email VARCHAR(100) UNIQUE,
+    shift VARCHAR(50),  -- turno de trabajo (mañana, tarde, noche)
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
 
 -- Tabla de Citas Médicas
 CREATE TABLE medical_appointments (

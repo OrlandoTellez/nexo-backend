@@ -2,6 +2,7 @@ use crate::{
     helpers::jwt::{generate_jwt, validate_jwt},
     infrastructure::auth_repository::AuthRepository,
 };
+use crate::domain::user::UserInfo;
 use sqlx::PgPool;
 use anyhow::Result;
 
@@ -17,10 +18,10 @@ impl<'a> AuthService<'a> {
     }
 
     /// Intenta loguear y devolver un JWT
-    pub async fn login(&self, username: &str, password: &str) -> Result<Option<String>> {
-        if let Some((_id, role)) = self.repo.validate_user(username, password).await? {
-            let token = generate_jwt(username.to_string(), role)?;
-            Ok(Some(token))
+    pub async fn login(&self, username: &str, password: &str) -> Result<Option<(String, UserInfo)>> {
+        if let Some(user_info) = self.repo.validate_user(username, password).await? {
+            let token = generate_jwt(user_info.username.clone(), user_info.role.clone())?;
+            Ok(Some((token, user_info)))
         } else {
             Ok(None)
         }

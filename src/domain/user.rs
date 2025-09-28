@@ -15,6 +15,17 @@ pub struct User {
     pub deleted_at: Option<NaiveDateTime>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
+pub struct UserInfo {
+    pub id: i32,
+    pub username: String,
+    pub role: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub email: Option<String>,
+    pub phone: Option<String>,
+}
+
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateUser {
     #[validate(length(min = 3, message = "El username debe tener al menos 3 caracteres"))]

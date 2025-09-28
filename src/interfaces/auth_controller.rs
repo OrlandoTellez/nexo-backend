@@ -6,6 +6,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use crate::application::auth_service::AuthService;
 use sqlx::PgPool;
+use crate::domain::user::UserInfo;
 
 #[derive(Deserialize)]
 pub struct LoginRequest {
@@ -18,6 +19,7 @@ struct LoginResponse {
     message: String,
     success: bool,
     token: Option<String>,
+    user: Option<UserInfo>,
 }
 
 
@@ -28,7 +30,7 @@ pub async fn login_handler(
     let service = AuthService::new(&pool);
 
     match service.login(&payload.username, &payload.password).await {
-        Ok(Some(token)) => {
+        Ok(Some((token, user_info))) => {
             let cookie = format!(
                 "auth_token={}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600",
                 token
@@ -37,32 +39,38 @@ pub async fn login_handler(
             (
                 StatusCode::OK,
                 [(header::SET_COOKIE, cookie)],
-                Json(
-                    LoginResponse {
-                        message: "Login exitoso".to_string(),
-                        success: true,
-                        token: Some(token),
-                    }
-                )
+                Json(LoginResponse {
+                    message: "Login exitoso".to_string(),
+                    success: true,
+                    token: Some(token),
+                    user: Some(user_info),
+                }),
             )
                 .into_response()
         }
-        Ok(None) => (StatusCode::UNAUTHORIZED, Json(
-            LoginResponse {
+        Ok(None) => (
+            StatusCode::UNAUTHORIZED,
+            Json(LoginResponse {
                 message: "Credenciales incorrectas".to_string(),
                 success: false,
                 token: None,
-            }
-        )).into_response(),
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, Json(
-            LoginResponse {
+                user: None,
+            }),
+        )
+            .into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(LoginResponse {
                 message: "Error interno".to_string(),
                 success: false,
                 token: None,
-            }
-        )).into_response(),
+                user: None,
+            }),
+        )
+            .into_response(),
     }
 }
+
 
 pub async fn logout_handler() -> Response {
     let cookie = "auth_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0".to_string();
