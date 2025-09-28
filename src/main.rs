@@ -15,11 +15,14 @@ use std::env;
 async fn main() {
     dotenvy::dotenv().ok();
 
+    let frontend_url = env::var("FRONTEND_URL")
+        .expect("FRONTEND_URL no está definida en .env");
+
     let cors = CorsLayer::new()
-        .allow_origin("http://localhost:1420".parse::<http::HeaderValue>().unwrap()) // origen del frontend
+        .allow_origin(frontend_url.parse::<http::HeaderValue>().unwrap()) 
         .allow_methods([http::Method::GET, http::Method::POST, http::Method::PUT, http::Method::DELETE])
         .allow_headers([http::header::CONTENT_TYPE, http::header::AUTHORIZATION])
-        .allow_credentials(true); // permite cookies / auth token
+        .allow_credentials(true); 
 
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL no está definida en .env");
