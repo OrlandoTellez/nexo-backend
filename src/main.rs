@@ -7,12 +7,19 @@ mod routes;
 mod helpers;
 
 use sqlx::postgres::PgPoolOptions;
-use axum::Router;
+use axum::{Router, http};
+use tower_http::cors::{CorsLayer};
 use std::env;
 
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
+
+    let cors = CorsLayer::new()
+        .allow_origin("http://localhost:1420".parse::<http::HeaderValue>().unwrap()) // origen del frontend
+        .allow_methods([http::Method::GET, http::Method::POST, http::Method::PUT, http::Method::DELETE])
+        .allow_headers([http::header::CONTENT_TYPE, http::header::AUTHORIZATION])
+        .allow_credentials(true); // permite cookies / auth token
 
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL no está definida en .env");
@@ -34,6 +41,7 @@ async fn main() {
         .merge(routes::medical_history::routes_medical_history(pool.clone()))
         .merge(routes::lab_result::routes_lab_result(pool.clone()))
         .merge(routes::auth::routes_auth(pool.clone()))
+        .layer(cors)
         ;
 
 
