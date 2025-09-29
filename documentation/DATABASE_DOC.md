@@ -1,4 +1,4 @@
-# Documentación Completa de la Base de Datos `db_paciente_app`
+# Documentación de la Base de Datos 
 
 ## Descripción General
 
