@@ -1,4 +1,4 @@
-# Paciente App Backend - Documentación Mejorada
+# Nexo Backend - Documentación Mejorada
 
 ## Descripción General
 
@@ -173,8 +173,8 @@ La base de datos incluye las siguientes tablas principales:
 
 1. **Clonar el repositorio**
 ```bash
-git clone https://github.com/OrlandoTellez/paciente-app-backend.git
-cd paciente-app-backend
+git clone https://github.com/OrlandoTellez/nexo-backend.git
+cd nexo-backend
 ```
 
 2. **Configurar variables de entorno**
