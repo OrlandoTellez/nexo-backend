@@ -63,18 +63,29 @@ CREATE TABLE services (
 CREATE TABLE patients (
     id_patient SERIAL PRIMARY KEY,
     id_user INT NULL REFERENCES users(id_user),
+    identity_number VARCHAR(20) UNIQUE NOT NULL,   -- cédula
     first_name VARCHAR(50) NOT NULL,
     second_name VARCHAR(50),
     first_lastname VARCHAR(50) NOT NULL,
     second_lastname VARCHAR(50),
-    address VARCHAR(300),
+    gender VARCHAR(10) CHECK (gender IN ('M','F','O')),
     birthdate DATE NOT NULL,
+    blood_type VARCHAR(5) CHECK (blood_type IN ('A+','A-','B+','B-','AB+','AB-','O+','O-')),
     phone VARCHAR(20),
     email VARCHAR(100) UNIQUE,
+    address VARCHAR(300),
+    emergency_contact_name VARCHAR(100),
+    emergency_contact_phone VARCHAR(20),
+    allergies TEXT,
+    current_medications TEXT,
+    medical_background TEXT, -- info general (aparte de tabla medical_history)
+    priority INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'active',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
 );
+
 
 -- Tabla de Doctores
 CREATE TABLE doctors (
@@ -108,7 +119,7 @@ CREATE TABLE admisionists (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
-);
+);''
 
 
 -- Tabla de Citas Médicas
