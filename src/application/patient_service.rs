@@ -19,8 +19,8 @@ impl<R: PatientRepository> PatientService<R> {
         self.repo.get_by_id(id).await
     }
 
-    pub async fn create(&self, data: CreatePatient) -> Result<Patient> {
-        self.repo.create(data).await
+    pub async fn create(&self, data: CreatePatient, raw_password: &str) -> Result<Patient> {
+        self.repo.create(data, raw_password).await
     }
 
     pub async fn update(&self, id: i32, data: UpdatePatient) -> Result<Option<Patient>> {

@@ -71,16 +71,26 @@ Content-Type: application/json
 **Cuerpo de la Solicitud:**
 ```json
 {
-  "id_user": null,
-  "first_name": "Samuel",
-  "second_name": "Gabriel",
-  "first_lastname": "Tellez",
-  "second_lastname": "Houston",
-  "address": "Rpto. satelite asososca casa no 135",
-  "birthdate": "2005-01-06",
-  "phone": "75061202",
-  "email": "orlandotellsez36@gmail.com"
+  "identity_number": "001-120590-0001J",
+  "first_name": "Juan",
+  "second_name": "Carlos",
+  "first_lastname": "Pérez",
+  "second_lastname": "López",
+  "gender": "M",
+  "birthdate": "1990-05-12",
+  "blood_type": "O+",
+  "phone": "+50588887777",
+  "email": "juan.perez@example.com",
+  "address": "Colonia Centroamérica, Managua",
+  "emergency_contact_name": "María Pérez",
+  "emergency_contact_phone": "+50577776666",
+  "allergies": "Penicilina",
+  "current_medications": "Losartán",
+  "medical_background": "Hipertensión",
+  "priority": 1,
+  "status": "active"
 }
+
 ```
 
 **Campos Requeridos:**

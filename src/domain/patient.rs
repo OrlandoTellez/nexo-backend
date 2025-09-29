@@ -18,21 +18,21 @@ pub struct Patient {
     pub gender: Option<String>, // 'M', 'F', 'O'
     pub birthdate: NaiveDate,
     pub blood_type: Option<String>, // A+, O-, etc.
-
+ 
     pub phone: Option<String>,
     pub email: Option<String>,
     pub address: Option<String>,
-
+ 
     pub emergency_contact_name: Option<String>,
     pub emergency_contact_phone: Option<String>,
-
+ 
     pub allergies: Option<String>,
     pub current_medications: Option<String>,
     pub medical_background: Option<String>,
-
-    pub priority: i32,
-    pub status: String,
-
+ 
+    pub priority: Option<i32>,
+    pub status: Option<String>,
+ 
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
     pub deleted_at: Option<NaiveDateTime>,
@@ -40,8 +40,8 @@ pub struct Patient {
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreatePatient {
-    pub id_user: Option<i32>,
-
+    #[validate(length(min = 8, message = "La contraseña debe tener al menos 8 caracteres"))]
+ 
     #[validate(length(min = 5, message = "La cédula debe tener al menos 5 caracteres"))]
     pub identity_number: String,
 
@@ -97,7 +97,7 @@ pub struct UpdatePatient {
     pub second_lastname: Option<String>,
 
     pub gender: Option<String>,
-    pub birthdate: Option<NaiveDate>,
+    pub birthdate: Option<NaiveDateTime>,
     pub blood_type: Option<String>,
 
     #[validate(custom = "validate_phone")]
@@ -118,3 +118,4 @@ pub struct UpdatePatient {
     pub priority: Option<i32>,
     pub status: Option<String>,
 }
+

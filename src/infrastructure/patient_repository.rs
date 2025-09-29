@@ -1,15 +1,15 @@
+use crate::domain::patient::{CreatePatient, Patient, UpdatePatient};
 use anyhow::Result;
 use async_trait::async_trait;
-use sqlx::Error;
-use sqlx::PgPool;
-
-use crate::domain::patient::{CreatePatient, Patient, UpdatePatient};
+use argon2::{Argon2, PasswordHasher};
+use password_hash::{SaltString, rand_core::OsRng};
+use sqlx::{PgPool, Postgres, Transaction};
 
 #[async_trait]
 pub trait PatientRepository: Send + Sync + 'static {
     async fn get_all(&self) -> Result<Vec<Patient>>;
     async fn get_by_id(&self, id: i32) -> Result<Option<Patient>>;
-    async fn create(&self, data: CreatePatient) -> Result<Patient>;
+    async fn create(&self, data: CreatePatient, raw_password: &str) -> Result<Patient>;
     async fn update(&self, id: i32, data: UpdatePatient) -> Result<Option<Patient>>;
     async fn delete(&self, id: i32) -> Result<Option<Patient>>;
 }
@@ -39,7 +39,7 @@ impl PatientRepository for PgPatientRepository {
                    created_at, updated_at, deleted_at
             FROM patients
             WHERE deleted_at IS NULL
-            "#
+            "#,
         )
         .fetch_all(&self.pool)
         .await?;
@@ -59,7 +59,7 @@ impl PatientRepository for PgPatientRepository {
                    created_at, updated_at, deleted_at
             FROM patients
             WHERE id_patient = $1 AND deleted_at IS NULL
-            "#
+            "#,
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -67,8 +67,29 @@ impl PatientRepository for PgPatientRepository {
         Ok(result)
     }
 
-    async fn create(&self, data: CreatePatient) -> Result<Patient> {
-        let query = sqlx::query_as::<_, Patient>(
+    async fn create(&self, data: CreatePatient, raw_password: &str) -> Result<Patient> {
+        let mut tx = self.pool.begin().await?;
+
+        // Crear usuario
+        let username = data
+            .email
+            .clone()
+            .unwrap_or_else(|| data.identity_number.clone());
+        let password_hash = raw_password;
+
+        let user_id: i32 = sqlx::query_scalar!(
+            r#"
+        INSERT INTO users (username, password_hash, role)
+        VALUES ($1, $2, 'patient')
+        RETURNING id_user
+        "#,
+            username,
+            password_hash
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+
+        let patient = sqlx::query_as::<_, Patient>(
             r#"
             INSERT INTO patients (
                 id_user, identity_number,
@@ -79,45 +100,60 @@ impl PatientRepository for PgPatientRepository {
                 allergies, current_medications, medical_background,
                 priority, status
             )
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
-            RETURNING *
+            VALUES (
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19
+            )
+            RETURNING
+                id_patient,
+                id_user,
+                identity_number,
+                first_name,
+                second_name,
+                first_lastname,
+                second_lastname,
+                gender,
+                birthdate,
+                blood_type,
+                phone,
+                email,
+                address,
+                emergency_contact_name,
+                emergency_contact_phone,
+                allergies,
+                current_medications,
+                medical_background,
+                priority,
+                status,
+                created_at,
+                updated_at,
+                deleted_at
             "#
         )
-        .bind(data.id_user)
-        .bind(data.identity_number)
-        .bind(data.first_name)
-        .bind(data.second_name)
-        .bind(data.first_lastname)
-        .bind(data.second_lastname)
-        .bind(data.gender)
-        .bind(data.birthdate)
-        .bind(data.blood_type)
-        .bind(data.phone)
-        .bind(data.email)
-        .bind(data.address)
-        .bind(data.emergency_contact_name)
-        .bind(data.emergency_contact_phone)
-        .bind(data.allergies)
-        .bind(data.current_medications)
-        .bind(data.medical_background)
-        .bind(data.priority.unwrap_or(0)) // valor por defecto
-        .bind(data.status.unwrap_or_else(|| "active".to_string())); // valor por defecto
+        .bind(user_id)
+        .bind(&data.identity_number)
+        .bind(&data.first_name)
+        .bind(&data.second_name)
+        .bind(&data.first_lastname)
+        .bind(&data.second_lastname)
+        .bind(&data.gender)
+        .bind(data.birthdate) 
+        .bind(&data.blood_type)
+        .bind(&data.phone)
+        .bind(&data.email)
+        .bind(&data.address)
+        .bind(&data.emergency_contact_name)
+        .bind(&data.emergency_contact_phone)
+        .bind(&data.allergies)
+        .bind(&data.current_medications)
+        .bind(&data.medical_background)
+        .bind(data.priority.unwrap_or(0))
+        .bind(data.status.clone().unwrap_or_else(|| "active".to_string()))
+        .fetch_one(&mut *tx)
+        .await?;
 
-        let result = match query.fetch_one(&self.pool).await {
-            Ok(patient) => patient,
-            Err(Error::Database(db_err)) => {
-                if db_err.code().as_deref() == Some("23505") {
-                    anyhow::bail!("El número de cédula o correo ya existe")
-                } else {
-                    anyhow::bail!("Error en la base de datos: {}", db_err.message())
-                }
-            }
-            Err(e) => {
-                anyhow::bail!("Error inesperado: {}", e)
-            }
-        };
+        tx.commit().await?;
+        Ok(patient)
 
-        Ok(result)
     }
 
     async fn update(&self, id: i32, data: UpdatePatient) -> Result<Option<Patient>> {
@@ -146,7 +182,7 @@ impl PatientRepository for PgPatientRepository {
                 updated_at = NOW()
             WHERE id_patient = $20
             RETURNING *
-            "#
+            "#,
         )
         .bind(data.id_user)
         .bind(data.identity_number)
