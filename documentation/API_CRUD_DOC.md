@@ -1,72 +1,199 @@
-# Paciente App - API Documentation
+# Paciente App - Documentación Completa de la API
 
-## 📋 Descripción General
+## Descripción General
 
 API REST para el sistema de gestión hospitalaria "Paciente App". Desarrollada en Rust con Axum y PostgreSQL para automatizar procesos de registro, seguimiento de pacientes y programación de citas médicas.
 
-**URL Base**: `http://localhost:3000`
+**URL Base**: `http://localhost:3000` este link solo es válido para desarrollo
 
-## 🔐 Autenticación
+## Autenticación
 
-*Nota: La autenticación está pendiente de implementación. Actualmente los endpoints son públicos para desarrollo.*
+### Sistema de Autenticación JWT
 
-## 📊 Esquema de la Base de Datos
+La API utiliza JSON Web Tokens (JWT) para autenticación. Los tokens se envían en una cookie HTTP-only para mayor seguridad.
 
-### Relaciones Principales
-```
-Users ←→ Patients (1:1)
-Users ←→ Doctors (1:1)  
-Doctors → Areas, Services, Specialities (N:1)
-Patients → Medical Appointments (1:N)
-Doctors → Medical Appointments (1:N)
-```
+### Endpoints de Autenticación
 
-## 🏥 Endpoints de Pacientes
-
-### Obtener todos los pacientes
+#### Iniciar Sesión
 ```http
-GET /patients
+POST /auth/login
+Content-Type: application/json
+```
+
+**Cuerpo de la Solicitud:**
+```json
+{
+  "username": "usuario123",
+  "password": "contraseña123"
+}
 ```
 
 **Respuesta Exitosa (200 OK):**
 ```json
-[
-  {
-    "id_patient": 1,
-    "id_user": null,
-    "first_name": "Samuel",
-    "second_name": "Gabriel",
-    "first_lastname": "Tellez",
-    "second_lastname": "Houston",
-    "address": "Rpto. satelite asososca casa no 135",
-    "birthdate": "2005-01-06",
-    "phone": "75061202",
-    "email": "orlandotellsez36@gmail.com",
-    "created_at": "2024-01-15T10:30:00Z",
-    "updated_at": null,
-    "deleted_at": null
+{
+  "message": "Login exitoso",
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "usuario123",
+    "role": "patient",
+    "first_name": "Juan",
+    "last_name": "Pérez",
+    "email": "juan@example.com",
+    "phone": "+50588887777"
   }
-]
+}
 ```
 
-### Obtener paciente por ID
+**Headers de Respuesta:**
+```http
+Set-Cookie: auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600
+```
+
+**Respuestas de Error:**
+- `401 Unauthorized`: Credenciales incorrectas
+- `500 Internal Server Error`: Error interno del servidor
+
+#### Cerrar Sesión
+```http
+POST /auth/logout
+```
+
+**Respuesta Exitosa (200 OK):**
+```json
+"Logout exitoso"
+```
+
+**Headers de Respuesta:**
+```http
+Set-Cookie: auth_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0
+```
+
+## Esquema de la Base de Datos
+
+### Relaciones Principales
+```
+Users (1:1) Patients
+Users (1:1) Doctors
+Users (1:1) Admisionists
+Doctors (N:1) Areas, Services, Specialities
+Patients (1:N) Medical Appointments
+Doctors (1:N) Medical Appointments
+Patients (1:N) Medical History
+Patients (1:N) Lab Results
+```
+
+## Endpoints de Gestión de Pacientes
+
+### Obtener Todos los Pacientes
+```http
+GET /patients
+```
+
+**Descripción:** Recupera una lista paginada de todos los pacientes activos en el sistema.
+
+**Parámetros de Consulta:**
+- `page` (opcional): Número de página (default: 1)
+- `limit` (opcional): Cantidad de registros por página (default: 20)
+- `search` (opcional): Término de búsqueda en nombre, apellido o email
+
+**Headers Requeridos:**
+```http
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+```
+
+**Respuesta Exitosa (200 OK):**
+```json
+{
+  "data": [
+    {
+      "id_patient": 1,
+      "id_user": 123,
+      "identity_number": "001-120590-0001J",
+      "first_name": "Samuel",
+      "second_name": "Gabriel",
+      "first_lastname": "Tellez",
+      "second_lastname": "Houston",
+      "gender": "M",
+      "birthdate": "2005-01-06",
+      "blood_type": "O+",
+      "phone": "+50575061202",
+      "email": "orlandotellsez36@gmail.com",
+      "address": "Rpto. satelite asososca casa no 135",
+      "emergency_contact_name": "María Pérez",
+      "emergency_contact_phone": "+50577776666",
+      "allergies": "Penicilina",
+      "current_medications": "Losartán",
+      "medical_background": "Hipertensión",
+      "priority": 1,
+      "status": "active",
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": null,
+      "deleted_at": null
+    }
+  ],
+  "pagination": {
+    "current_page": 1,
+    "total_pages": 5,
+    "total_records": 95,
+    "per_page": 20
+  }
+}
+```
+
+### Obtener Paciente por ID
 ```http
 GET /patients/{id}
 ```
 
-**Parámetros:**
-- `id` (entero, requerido): ID del paciente
+**Descripción:** Recupera la información detallada de un paciente específico.
+
+**Parámetros de Ruta:**
+- `id` (entero, requerido): ID único del paciente
 
 **Respuestas:**
-- `200 OK`: Paciente encontrado
-- `404 Not Found`: Paciente no existe
-- `500 Internal Server Error`: Error del servidor
+- `200 OK`: Paciente encontrado exitosamente
+- `404 Not Found`: No existe paciente con el ID proporcionado
+- `500 Internal Server Error`: Error interno del servidor
 
-### Crear nuevo paciente
+**Respuesta Exitosa (200 OK):**
+```json
+{
+  "id_patient": 1,
+  "id_user": 123,
+  "identity_number": "001-120590-0001J",
+  "first_name": "Samuel",
+  "second_name": "Gabriel",
+  "first_lastname": "Tellez",
+  "second_lastname": "Houston",
+  "gender": "M",
+  "birthdate": "2005-01-06",
+  "blood_type": "O+",
+  "phone": "+50575061202",
+  "email": "orlandotellsez36@gmail.com",
+  "address": "Rpto. satelite asososca casa no 135",
+  "emergency_contact_name": "María Pérez",
+  "emergency_contact_phone": "+50577776666",
+  "allergies": "Penicilina",
+  "current_medications": "Losartán",
+  "medical_background": "Hipertensión",
+  "priority": 1,
+  "status": "active",
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": null,
+  "deleted_at": null
+}
+```
+
+### Crear Nuevo Paciente
 ```http
 POST /patients
 Content-Type: application/json
 ```
+
+**Descripción:** Crea un nuevo registro de paciente en el sistema. Automáticamente genera un usuario asociado con una contraseña basada en los datos del paciente.
 
 **Cuerpo de la Solicitud:**
 ```json
@@ -90,52 +217,146 @@ Content-Type: application/json
   "priority": 1,
   "status": "active"
 }
-
 ```
 
 **Campos Requeridos:**
-- `first_name` (string)
-- `first_lastname` (string) 
-- `birthdate` (date, formato: YYYY-MM-DD)
+- `identity_number` (string): Cédula o documento de identidad
+- `first_name` (string): Primer nombre
+- `first_lastname` (string): Primer apellido
+- `birthdate` (date): Fecha de nacimiento en formato YYYY-MM-DD
+
+**Campos Opcionales:**
+- `second_name` (string): Segundo nombre
+- `second_lastname` (string): Segundo apellido
+- `gender` (string): Género (M, F, O)
+- `blood_type` (string): Tipo de sangre (A+, A-, B+, B-, AB+, AB-, O+, O-)
+- `phone` (string): Teléfono en formato internacional
+- `email` (string): Correo electrónico válido
+- `address` (string): Dirección completa
+- `emergency_contact_name` (string): Nombre del contacto de emergencia
+- `emergency_contact_phone` (string): Teléfono del contacto de emergencia
+- `allergies` (string): Alergias conocidas
+- `current_medications` (string): Medicamentos actuales
+- `medical_background` (string): Antecedentes médicos
+- `priority` (integer): Nivel de prioridad (0-10)
+- `status` (string): Estado del paciente (active, inactive)
+
+**Validaciones:**
+- `email`: Debe ser un email válido y único en el sistema
+- `phone`: Debe seguir formato internacional E.164 (+50588887777)
+- `identity_number`: Debe ser único en el sistema
+- `gender`: Solo permite 'M', 'F', u 'O'
+- `blood_type`: Solo permite tipos de sangre válidos
 
 **Respuestas:**
 - `201 Created`: Paciente creado exitosamente
-- `400 Bad Request`: Datos inválidos
-- `409 Conflict`: Email ya existe
+- `400 Bad Request`: Datos de entrada inválidos o validación fallida
+- `409 Conflict`: Email o número de identidad ya existen
 - `500 Internal Server Error`: Error del servidor
 
-### Actualizar paciente
+**Respuesta Exitosa (201 Created):**
+```json
+{
+  "id_patient": 2,
+  "id_user": 124,
+  "identity_number": "001-120590-0001J",
+  "first_name": "Juan",
+  "second_name": "Carlos",
+  "first_lastname": "Pérez",
+  "second_lastname": "López",
+  "gender": "M",
+  "birthdate": "1990-05-12",
+  "blood_type": "O+",
+  "phone": "+50588887777",
+  "email": "juan.perez@example.com",
+  "address": "Colonia Centroamérica, Managua",
+  "emergency_contact_name": "María Pérez",
+  "emergency_contact_phone": "+50577776666",
+  "allergies": "Penicilina",
+  "current_medications": "Losartán",
+  "medical_background": "Hipertensión",
+  "priority": 1,
+  "status": "active",
+  "created_at": "2024-01-15T11:30:00Z",
+  "updated_at": null,
+  "deleted_at": null
+}
+```
+
+### Actualizar Paciente
 ```http
-PUT /patients/{id}
+PATCH /patients/{id}
 Content-Type: application/json
 ```
+
+**Descripción:** Actualiza parcialmente la información de un paciente existente.
+
+**Parámetros de Ruta:**
+- `id` (entero, requerido): ID único del paciente a actualizar
 
 **Cuerpo de la Solicitud:**
 ```json
 {
   "first_name": "Samuel Actualizado",
-  "phone": "88888888",
-  "email": "nuevoemail@gmail.com"
+  "phone": "+50588888888",
+  "email": "nuevoemail@gmail.com",
+  "address": "Nueva dirección actualizada",
+  "priority": 2
 }
 ```
 
-**Nota:** Todos los campos son opcionales en la actualización.
+**Nota:** Todos los campos son opcionales. Solo se actualizarán los campos proporcionados.
 
-### Eliminar paciente (Soft Delete)
+**Respuestas:**
+- `200 OK`: Paciente actualizado exitosamente
+- `404 Not Found`: Paciente no encontrado
+- `400 Bad Request`: Datos de entrada inválidos
+- `409 Conflict`: Email ya existe (si se está actualizando el email)
+- `500 Internal Server Error`: Error del servidor
+
+### Eliminar Paciente (Soft Delete)
 ```http
 DELETE /patients/{id}
 ```
 
-**Respuesta:** `200 OK` con los datos del paciente eliminado
+**Descripción:** Realiza una eliminación lógica del paciente, marcándolo como eliminado pero manteniendo el registro en la base de datos.
 
-## 👥 Endpoints de Usuarios
+**Parámetros de Ruta:**
+- `id` (entero, requerido): ID único del paciente a eliminar
 
-### Obtener todos los usuarios
+**Respuestas:**
+- `200 OK`: Paciente eliminado exitosamente
+- `404 Not Found`: Paciente no encontrado
+- `500 Internal Server Error`: Error del servidor
+
+**Respuesta Exitosa (200 OK):**
+```json
+{
+  "id_patient": 1,
+  "id_user": 123,
+  "first_name": "Samuel",
+  "first_lastname": "Tellez",
+  "email": "orlandotellsez36@gmail.com",
+  "deleted_at": "2024-01-15T12:30:00Z"
+}
+```
+
+## Endpoints de Gestión de Usuarios
+
+### Obtener Todos los Usuarios
 ```http
 GET /users
 ```
 
-**Respuesta:**
+**Descripción:** Recupera una lista de todos los usuarios del sistema (solo accesible para administradores).
+
+**Headers Requeridos:**
+```http
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+```
+
+**Respuesta Exitosa (200 OK):**
 ```json
 [
   {
@@ -146,48 +367,62 @@ GET /users
     "created_at": "2024-01-15T10:30:00Z",
     "updated_at": null,
     "deleted_at": null
+  },
+  {
+    "id_user": 2,
+    "username": "drgarcia",
+    "password_hash": "$2a$10$5.9.1.0.3.2.5.4.6.7.8.9.1.2.3.4.5.6.7.8.9.2",
+    "role": "doctor",
+    "created_at": "2024-01-15T11:30:00Z",
+    "updated_at": null,
+    "deleted_at": null
   }
 ]
 ```
 
-### Crear nuevo usuario
+### Crear Nuevo Usuario
 ```http
 POST /users
 Content-Type: application/json
 ```
 
+**Descripción:** Crea un nuevo usuario en el sistema.
+
 **Cuerpo de la Solicitud:**
 ```json
 {
-  "username": "orlandotellsez36",
-  "password_hash": "$2a$10$5.9.1.0.3.2.5.4.6.7.8.9.1.2.3.4.5.6.7.8.9.1",
-  "role": "patient"
+  "username": "nuevousuario",
+  "password_hash": "contraseña123",
+  "role": "doctor"
 }
 ```
 
-**Roles Válidos:** `patient`, `doctor`, `admin`
+**Campos Requeridos:**
+- `username` (string): Nombre de usuario único
+- `password_hash` (string): Contraseña en texto plano (se hashea automáticamente)
+- `role` (string): Rol del usuario (patient, doctor, admin, admisionist)
 
-**Nota:** La contraseña se hashea automáticamente con BCrypt
+**Validaciones:**
+- `username`: Debe tener al menos 3 caracteres y ser único
+- `password_hash`: Debe tener al menos 6 caracteres
+- `role`: Debe ser uno de: patient, doctor, admin, admisionist
 
-### Actualizar usuario
-```http
-PUT /users/{id}
-Content-Type: application/json
-```
+**Respuestas:**
+- `201 Created`: Usuario creado exitosamente
+- `400 Bad Request`: Datos inválidos
+- `409 Conflict`: Username ya existe
+- `500 Internal Server Error`: Error del servidor
 
-### Eliminar usuario (Soft Delete)
-```http
-DELETE /users/{id}
-```
+## Endpoints de Gestión de Doctores
 
-## 🩺 Endpoints de Doctores
-
-### Obtener todos los doctores
+### Obtener Todos los Doctores
 ```http
 GET /doctors
 ```
 
-**Respuesta:**
+**Descripción:** Recupera una lista de todos los doctores activos en el sistema.
+
+**Respuesta Exitosa (200 OK):**
 ```json
 [
   {
@@ -195,12 +430,12 @@ GET /doctors
     "id_area": 1,
     "id_speciality": 1,
     "id_service": 1,
-    "id_user": null,
+    "id_user": 2,
     "first_name": "Samuel",
     "second_name": "Gabriel",
     "first_lastname": "Tellez",
     "second_lastname": "Houston",
-    "phone": "75061202",
+    "phone": "+50575061202",
     "email": "orlandotellsez36@gmail.com",
     "created_at": "2024-01-15T10:30:00Z",
     "updated_at": null,
@@ -209,11 +444,13 @@ GET /doctors
 ]
 ```
 
-### Crear nuevo doctor
+### Crear Nuevo Doctor
 ```http
 POST /doctors
 Content-Type: application/json
 ```
+
+**Descripción:** Crea un nuevo registro de doctor en el sistema.
 
 **Cuerpo de la Solicitud:**
 ```json
@@ -221,157 +458,191 @@ Content-Type: application/json
   "id_area": 1,
   "id_service": 1,
   "id_speciality": 1,
-  "id_user": null,
-  "first_name": "Samuel",
-  "second_name": "Gabriel",
-  "first_lastname": "Tellez",
-  "second_lastname": "Houston",
-  "phone": "75061202",
-  "email": "orlandotellsez36@gmail.com"
+  "id_user": 2,
+  "first_name": "Carlos",
+  "second_name": "Enrique",
+  "first_lastname": "García",
+  "second_lastname": "López",
+  "phone": "+50588889999",
+  "email": "drgarcia@hospital.gob.ni"
 }
 ```
 
 **Prerrequisitos:** Deben existir previamente el área, servicio y especialidad referenciados.
 
-### Actualizar doctor
+**Campos Requeridos:**
+- `id_area` (integer): ID del área médica
+- `id_service` (integer): ID del servicio médico
+- `first_name` (string): Primer nombre
+- `first_lastname` (string): Primer apellido
+
+**Validaciones:**
+- `email`: Debe ser un email válido y único
+- `phone`: Formato internacional E.164
+
+## Endpoints de Citas Médicas
+
+### Obtener Todas las Citas
 ```http
-PUT /doctors/{id}
+GET /appointments
+```
+
+**Descripción:** Recupera una lista de todas las citas médicas.
+
+**Parámetros de Consulta:**
+- `status` (opcional): Filtrar por estado (pending, confirmed, completed, canceled)
+- `date` (opcional): Filtrar por fecha específica (YYYY-MM-DD)
+- `patient_id` (opcional): Filtrar por ID de paciente
+- `doctor_id` (opcional): Filtrar por ID de doctor
+
+### Crear Nueva Cita Médica
+```http
+POST /appointments
 Content-Type: application/json
 ```
 
-### Eliminar doctor (Soft Delete)
-```http
-DELETE /doctors/{id}
-```
+**Descripción:** Programa una nueva cita médica.
 
-## 🏥 Endpoints de Servicios Médicos
-
-### Obtener todos los servicios
-```http
-GET /services
-```
-
-**Respuesta:**
+**Cuerpo de la Solicitud:**
 ```json
-[
-  {
-    "id_service": 1,
-    "service_name": "Servicio 1",
-    "created_at": "2024-01-15T10:30:00Z",
-    "updated_at": null,
-    "deleted_at": null
-  }
-]
+{
+  "id_patient": 1,
+  "id_doctor": 1,
+  "id_area": 1,
+  "id_service": 1,
+  "appointment_datetime": "2024-02-01T10:00:00Z",
+  "building": "A",
+  "room": "101",
+  "notes": "Paciente con síntomas de gripe"
+}
 ```
 
-### Crear nuevo servicio
+**Campos Requeridos:**
+- `id_patient` (integer): ID del paciente
+- `id_doctor` (integer): ID del doctor
+- `id_area` (integer): ID del área
+- `id_service` (integer): ID del servicio
+- `appointment_datetime` (string): Fecha y hora de la cita en ISO 8601
+
+## Endpoints de Historial Médico
+
+### Obtener Historial Médico
 ```http
-POST /services
+GET /medical_history
+```
+
+**Descripción:** Recupera el historial médico de pacientes.
+
+**Parámetros de Consulta:**
+- `patient_id` (opcional): Filtrar por ID de paciente
+
+### Crear Registro de Historial Médico
+```http
+POST /medical_history
 Content-Type: application/json
 ```
 
 **Cuerpo de la Solicitud:**
 ```json
 {
-  "service_name": "Servicio 1"
+  "id_patient": 1,
+  "id_doctor": 1,
+  "diagnosis": "Hipertensión arterial estado I",
+  "treatment": "Losartán 50mg cada 24 horas",
+  "notes": "Controlar presión arterial semanalmente"
 }
 ```
 
-### Actualizar servicio
+## Endpoints de Resultados de Laboratorio
+
+### Obtener Resultados de Laboratorio
 ```http
-PATCH /services/{id}
-Content-Type: application/json
+GET /lab_results
 ```
 
-### Eliminar servicio (Soft Delete)
+**Descripción:** Recupera resultados de laboratorio.
+
+### Crear Resultado de Laboratorio
 ```http
-DELETE /services/{id}
-```
-
-## 📚 Endpoints de Especialidades Médicas
-
-### Obtener todas las especialidades
-```http
-GET /specialities
-```
-
-**Respuesta:**
-```json
-[
-  {
-    "id_speciality": 1,
-    "speciality_name": "Especialidad 1",
-    "created_at": "2024-01-15T10:30:00Z",
-    "updated_at": null,
-    "deleted_at": null
-  }
-]
-```
-
-### Crear nueva especialidad
-```http
-POST /specialities
+POST /lab_results
 Content-Type: application/json
 ```
 
 **Cuerpo de la Solicitud:**
 ```json
 {
-  "speciality_name": "Especialidad 1"
+  "id_patient": 1,
+  "id_doctor": 1,
+  "lab_name": "Laboratorio Central",
+  "test_type": "Hemograma completo",
+  "result": "Hemoglobina: 14.2 g/dL, Hematocrito: 42%"
 }
 ```
 
-### Actualizar especialidad
-```http
-PATCH /specialities/{id}
-Content-Type: application/json
-```
+## Códigos de Estado HTTP
 
-### Eliminar especialidad (Soft Delete)
-```http
-DELETE /specialities/{id}
-```
+| Código | Descripción | Casos de Uso |
+|--------|-------------|--------------|
+| `200` | OK | Solicitud exitosa, datos devueltos |
+| `201` | Created | Recurso creado exitosamente |
+| `400` | Bad Request | Datos de entrada inválidos o validación fallida |
+| `401` | Unauthorized | Autenticación requerida o fallida |
+| `403` | Forbidden | Permisos insuficientes |
+| `404` | Not Found | Recurso no encontrado |
+| `409` | Conflict | Violación de restricción única (email, username, etc.) |
+| `500` | Internal Server Error | Error interno del servidor |
 
-## ⚠️ Códigos de Estado HTTP
-
-| Código | Descripción |
-|--------|-------------|
-| `200` | OK - Solicitud exitosa |
-| `201` | Created - Recurso creado exitosamente |
-| `400` | Bad Request - Datos de entrada inválidos |
-| `404` | Not Found - Recurso no encontrado |
-| `409` | Conflict - Violación de restricción única (ej: email duplicado) |
-| `500` | Internal Server Error - Error del servidor |
-
-## 🔄 Convenciones de la API
+## Convenciones de la API
 
 ### Soft Delete
-Todos los endpoints de eliminación realizan **soft delete**, marcando el registro con `deleted_at` en lugar de eliminarlo físicamente.
+Todos los endpoints de eliminación realizan **soft delete**, marcando el registro con `deleted_at` en lugar de eliminarlo físicamente. Esto permite:
+- Mantener la integridad referencial
+- Recuperar datos si es necesario
+- Auditoría completa de datos
 
 ### Campos de Auditoría
-Cada entidad incluye campos de auditoría:
-- `created_at`: Fecha de creación
-- `updated_at`: Fecha de última actualización
-- `deleted_at`: Fecha de eliminación (null si no está eliminado)
+Cada entidad incluye campos de auditoría automáticos:
+- `created_at`: Fecha de creación (automático)
+- `updated_at`: Fecha de última actualización (automático)
+- `deleted_at`: Fecha de eliminación (null si está activo)
+
+### Paginación
+Endpoints que devuelven listas implementan paginación:
+```json
+{
+  "data": [...],
+  "pagination": {
+    "current_page": 1,
+    "total_pages": 5,
+    "total_records": 95,
+    "per_page": 20
+  }
+}
+```
 
 ### Formatos de Fecha
 - **Fecha**: `YYYY-MM-DD` (ej: 2005-01-06)
 - **Fecha/Hora**: ISO 8601 (ej: 2024-01-15T10:30:00Z)
 
-### Validaciones
+### Validaciones Comunes
 - **Email**: Formato válido y único en el sistema
-- **Campos requeridos**: Validados a nivel de base de datos y aplicación
+- **Teléfono**: Formato internacional E.164 (+50588887777)
+- **Campos requeridos**: Validados a nivel de aplicación y base de datos
 - **Relaciones foreign key**: Validadas en la base de datos
 
-## 🚀 Ejemplo de Flujo de Uso
+## Ejemplo de Flujo Completo
 
-### 1. Crear Servicios y Especialidades Primero
+### 1. Crear Servicios y Especialidades
 ```http
 POST /services
-{"service_name": "Medicina General"}
+{
+  "service_name": "Medicina General"
+}
 
 POST /specialities 
-{"speciality_name": "Cardiología"}
+{
+  "speciality_name": "Cardiología"
+}
 ```
 
 ### 2. Crear Usuario para Doctor
@@ -379,7 +650,7 @@ POST /specialities
 POST /users
 {
   "username": "drgarcia",
-  "password_hash": "hashed_password",
+  "password_hash": "password123",
   "role": "doctor"
 }
 ```
@@ -394,7 +665,8 @@ POST /doctors
   "id_user": 1,
   "first_name": "Carlos",
   "first_lastname": "García",
-  "email": "drgarcia@hospital.gob.ni"
+  "email": "drgarcia@hospital.gob.ni",
+  "phone": "+50588889999"
 }
 ```
 
@@ -402,26 +674,47 @@ POST /doctors
 ```http
 POST /patients
 {
+  "identity_number": "001-250589-1000A",
   "first_name": "Ana",
   "first_lastname": "Martínez", 
   "birthdate": "1990-05-15",
-  "email": "ana.martinez@email.com"
+  "email": "ana.martinez@email.com",
+  "phone": "+50588880000"
 }
 ```
 
-## 📞 Soporte y Errores
+### 5. Programar Cita
+```http
+POST /appointments
+{
+  "id_patient": 1,
+  "id_doctor": 1,
+  "id_area": 1,
+  "id_service": 1,
+  "appointment_datetime": "2024-02-01T14:30:00Z"
+}
+```
 
-En caso de errores, la API retorna mensajes descriptivos en el cuerpo de la respuesta:
+## Manejo de Errores
+
+La API retorna mensajes de error descriptivos en formato JSON:
 
 ```json
 {
-  "error": "Descripción del error específico"
+  "error": "Descripción específica del error",
+  "code": "ERROR_CODE",
+  "details": {
+    "field": "email",
+    "message": "El correo ya está registrado"
+  }
 }
 ```
 
 **Errores comunes:**
-- `El correo ya existe`: Violación de unicidad de email
-- `Error en la base de datos`: Problemas de conexión o consulta
-- `Recurso no encontrado`: ID proporcionado no existe
+- `VALIDATION_ERROR`: Errores de validación de datos
+- `NOT_FOUND`: Recurso no encontrado
+- `DUPLICATE_ENTRY`: Violación de unicidad
+- `DATABASE_ERROR`: Error de base de datos
+- `AUTH_ERROR`: Error de autenticación
 
----
+
