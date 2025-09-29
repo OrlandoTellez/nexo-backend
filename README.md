@@ -1,4 +1,4 @@
-# Nexo Backend - Documentación Mejorada
+# Nexo Backend - Documentación 
 
 ## Descripción General
 
