@@ -1,4 +1,4 @@
-# Paciente App - Documentación Completa de la API
+# Documentación Completa de la API
 
 ## Descripción General
 
